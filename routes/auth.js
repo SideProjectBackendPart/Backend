@@ -5,6 +5,8 @@ require('dotenv').config();
 
 router.post('/login', loginController.login);
 router.post('/register', loginController.register);
-router.post('/messages', messageController.sendMessgae);
+
+router.post('/emailAuth', loginController.sendAuthEmail);
+
 
 module.exports = router;

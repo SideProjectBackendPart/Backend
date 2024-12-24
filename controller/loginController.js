@@ -1,7 +1,9 @@
 const LoginMapper = require('../db/login/LoginMapper');
 require('dotenv').config();
 const { v4: uuidv4 } = require('uuid'); // uuid의 v4를 직접 가져와 사용
-module.exports = { login, register }
+const nodemailer = require('nodemailer')
+
+module.exports = { login, register, sendAuthEmail }
 
 const uuid = () => {
     const tokens = uuidv4().split('-')
@@ -121,5 +123,135 @@ async function register(req, res) {
             message: "저장 실패"
         });
         return; // 함수 실행 종료
+    }
+}
+
+
+async function sendAuthEmail(req, res) {
+    try {
+        console.log(req.body.email);
+
+        const checkAuth = Math.floor(100000 + Math.random() * 900000);
+        console.log("checkAuth : ", checkAuth);
+
+        const { email_service, authEmail, authEmailPassword } = process.env;
+
+        const transporter = nodemailer.createTransport({
+            service: email_service,
+            auth: {
+                user: authEmail,
+                pass: authEmailPassword
+            }
+        });
+
+        const mailOptions = {
+            from: authEmail,
+            to: `${req.body.email}`,
+            subject: 'sideProject에서 이메일 인증 요청이 도착했습니다.',
+            html: `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #f9f9f9;
+                margin: 0;
+                padding: 0;
+            }
+            table {
+                max-width: 600px;
+                margin: 50px auto;
+                background-color: #ffffff;
+                border-collapse: collapse;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                overflow: hidden;
+            }
+            .header {
+                background-color: #4caf50;
+                color: #ffffff;
+                text-align: center;
+                padding: 20px;
+                font-size: 24px;
+                font-weight: bold;
+            }
+            .content {
+                padding: 20px;
+                text-align: center;
+                font-size: 16px;
+                color: #333333;
+            }
+            .code {
+                display: inline-block;
+                background-color: #f1f1f1;
+                padding: 10px 20px;
+                border-radius: 5px;
+                font-size: 24px;
+                font-weight: bold;
+                letter-spacing: 2px;
+                color: #4caf50;
+                margin: 20px 0;
+            }
+            .footer {
+                background-color: #f1f1f1;
+                text-align: center;
+                padding: 10px;
+                font-size: 14px;
+                color: #666666;
+            }
+            .footer a {
+                color: #4caf50;
+                text-decoration: none;
+            }
+        </style>
+    </head>
+    <body>
+        <table>
+            <tr>
+                <td class="header">
+                    Verification Code
+                </td>
+            </tr>
+            <tr>
+                <td class="content">
+                    <p>우리의 서비스를 이용해주셔서 감사합니다.</p>
+                    <p>아래의 6자리 인증 번호를 입력해주십시오:</p>
+                    <br>
+                    <div class="code">${checkAuth}</div>
+                    <br>
+                    <p>계정을 확인하려면 10분 이내에 이 코드를 입력하십시오.</p>
+                </td>
+            </tr>
+            <tr>
+                <td class="footer">
+                    <p>만약 인증을 요청한 적이 없다면, <a href="#">고객센터</a>로 연락하십시오.</p>
+                    <p>&copy; 2024 sideProject. All rights reserved.</p>
+                </td>
+            </tr>
+        </table>
+    </body>
+    </html>
+    `
+        };
+
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                console.error(error);
+            } else {
+                console.log('Email Sent : ', info);
+                res.json({
+                    success: true,
+                    checkAuth: checkAuth
+                });
+            }
+        })
+    } catch {
+        res.json({
+            success: false,
+            message: '이메일이 제대로 전송되지 않았습니다.'
+        });
     }
 }
