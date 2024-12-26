@@ -3,7 +3,11 @@ require('dotenv').config();
 const { v4: uuidv4 } = require('uuid'); // uuid의 v4를 직접 가져와 사용
 const nodemailer = require('nodemailer')
 
-module.exports = { login, register, sendAuthEmail }
+//인증 코드 정보를 저장하기 위한 Map
+//추후 redis 같은 캐시 서버에 저장해야 할 듯
+let saveAuthCodeInfo = new Map();
+
+module.exports = { login, register, sendAuthEmail, checkAuthCode }
 
 const uuid = () => {
     const tokens = uuidv4().split('-')
@@ -51,12 +55,8 @@ async function login(req, res) {
 
 }
 
-async function register(req, res) {
-    console.log(req.body.email);
-    console.log(req.body.password);
-    console.log("LoginMapper.checkMember(req.body.email).password :", await LoginMapper.checkMember(req.body.email));
-
-    const existingUser = await LoginMapper.checkMember(req.body.email);
+async function checkEmail(email) {
+    const existingUser = await LoginMapper.checkMember(email);
 
     // 이메일이 이미 사용 중인 경우
     if (existingUser && existingUser[0]?.password) {
@@ -69,7 +69,20 @@ async function register(req, res) {
         };
 
         res.json(response);
-        return; // 함수 실행 종료
+        return true; // 함수 실행 종료
+    } else {
+        return false;
+    }
+}
+
+async function register(req, res) {
+    console.log(req.body.email);
+    console.log(req.body.password);
+    console.log("LoginMapper.checkMember(req.body.email).password :", await LoginMapper.checkMember(req.body.email));
+
+    // 이메일이 이미 사용 중인 경우 함수 실행 중지
+    if (await checkEmail(req.body.email)) {
+        return;
     }
 
     let userId = uuid();
@@ -130,6 +143,11 @@ async function register(req, res) {
 async function sendAuthEmail(req, res) {
     try {
         console.log(req.body.email);
+
+        // 이메일이 이미 사용 중인 경우 함수 실행 중지
+        if (await checkEmail(req.body.email)) {
+            return;
+        }
 
         const checkAuth = Math.floor(100000 + Math.random() * 900000);
         console.log("checkAuth : ", checkAuth);
@@ -237,6 +255,17 @@ async function sendAuthEmail(req, res) {
     `
         };
 
+        //인증 키 업데이트
+        const authKey = `'${req.body.email}${checkAuth}'`
+        console.log("authKey : ", authKey)
+        if (saveAuthCodeInfo.has(authKey)) {
+            saveAuthCodeInfo.delete(authKey);
+        }
+        saveAuthCodeInfo.set(authKey, Date.now());
+
+        console.log("saveAuthCodeInfo.get(authKey) : ",saveAuthCodeInfo.get(authKey))
+
+        //이메일 전송
         transporter.sendMail(mailOptions, (error, info) => {
             if (error) {
                 console.error(error);
@@ -248,10 +277,48 @@ async function sendAuthEmail(req, res) {
                 });
             }
         })
-    } catch {
+    }
+    catch {
         res.json({
             success: false,
             message: '이메일이 제대로 전송되지 않았습니다.'
         });
     }
+}
+
+//인증 코드 유효 여부 확인
+async function checkAuthCode(req, res) {
+    //try {
+    console.log(req.body.email);
+    console.log(req.body.code);
+
+    //인증 키 확인
+    const authKey = `'${req.body.email}${req.body.code}'`
+    console.log("authKey : ", authKey)
+    console.log("saveAuthCodeInfo.get(authKey) : ", saveAuthCodeInfo.get(authKey))
+    console.log("time : ", Number(Date.now()) - Number(saveAuthCodeInfo.get(authKey)))
+    
+    //인증키를 발급 받은 기록이 있고, 그 기록이 10분 내 저장되었다면 true
+    if (saveAuthCodeInfo.has(authKey) && Date.now() - saveAuthCodeInfo.get(authKey) < 10 * 60 * 1000) {
+        
+        res.json({
+            success: true,
+            message: '인증 성공.'
+        });
+        saveAuthCodeInfo.delete(authKey);
+
+    } else {
+        res.json({
+            success: false,
+            message: '유효하지 않는 인증 번호 입니다.'
+        });
+
+    }
+
+    /*} catch {
+        res.json({
+            success: false,
+            message: '이메일이 제대로 전송되지 않았습니다.'
+        });
+    }*/
 }
