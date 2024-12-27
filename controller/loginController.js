@@ -64,10 +64,8 @@ async function checkEmail(email) {
     if (existingUser && existingUser[0]?.password) {
         const response = {
             success: false,
-            message: "Validation error",
-            errors: {
-                password: "이미 사용중인 이메일 입니다.", // 비밀번호 불일치
-            }
+            isExist : true,
+            message: "이미 존재하는 이메일 입니다."
         };
 
         res.json(response);
@@ -111,7 +109,8 @@ async function register(req, res) {
 
         const response = {
             success: true,
-            message: "Registration successful",
+            isExist : false,
+            message: "로그인 성공",
             data: {
                 user_id: userId,
                 email: req.body.email,
@@ -135,7 +134,8 @@ async function register(req, res) {
     } else {
         res.json({
             success: false,
-            message: "저장 실패"
+            isExist : false,
+            message: "로그인 실패"
         });
         return; // 함수 실행 종료
     }
@@ -275,6 +275,7 @@ async function sendAuthEmail(req, res) {
                 console.log('Email Sent : ', info);
                 res.json({
                     success: true,
+                    isExist : false,
                     checkAuth: checkAuth
                 });
             }
@@ -283,6 +284,7 @@ async function sendAuthEmail(req, res) {
     catch {
         res.json({
             success: false,
+            isExist : false,
             message: '이메일이 제대로 전송되지 않았습니다.'
         });
     }
@@ -317,6 +319,7 @@ async function sendAuthphoneNumber(req, res) {
 
         res.json({
             success: true,
+            isExist : false,
             checkAuth: checkAuth
         });
     }
@@ -324,6 +327,7 @@ async function sendAuthphoneNumber(req, res) {
     catch {
         res.json({
             success: false,
+            isExist : false,
             message: '이메일이 제대로 전송되지 않았습니다.'
         });
     }
@@ -348,6 +352,7 @@ async function checkAuthCode(req, res) {
 
         res.json({
             success: true,
+            
             message: '인증 성공.'
         });
         saveAuthCodeInfo.delete(authKey);
@@ -355,6 +360,7 @@ async function checkAuthCode(req, res) {
     } else {
         res.json({
             success: false,
+            
             message: '유효하지 않는 인증 번호 입니다.'
         });
 
