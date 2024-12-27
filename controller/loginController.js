@@ -311,7 +311,7 @@ async function sendAuthphoneNumber(req, res) {
         messageService.sendOne({
             'to': `${req.body.phoneNumber}`,
             'from': `${process.env.authNum}`,
-            'text': `'[sideProject] 인증번호 [${checkAuth}]를 입력해주세요.'`
+            'text': `[sideProject] 인증번호 [${checkAuth}]를 입력해주세요.`
         });
 
 
