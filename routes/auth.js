@@ -7,6 +7,7 @@ router.post('/login', loginController.login);
 router.post('/register', loginController.register);
 
 router.post('/emailAuth', loginController.sendAuthEmail);
+router.post('/phoneAuth', loginController.sendAuthphoneNumber);
 router.post('/checkAuthCode', loginController.checkAuthCode);
 
 

@@ -2,12 +2,14 @@ const LoginMapper = require('../db/login/LoginMapper');
 require('dotenv').config();
 const { v4: uuidv4 } = require('uuid'); // uuid의 v4를 직접 가져와 사용
 const nodemailer = require('nodemailer')
+const CoolsmsMessageService = require('coolsms-node-sdk').default;
+
 
 //인증 코드 정보를 저장하기 위한 Map
 //추후 redis 같은 캐시 서버에 저장해야 할 듯
 let saveAuthCodeInfo = new Map();
 
-module.exports = { login, register, sendAuthEmail, checkAuthCode }
+module.exports = { login, register, sendAuthEmail, sendAuthphoneNumber, checkAuthCode }
 
 const uuid = () => {
     const tokens = uuidv4().split('-')
@@ -263,7 +265,7 @@ async function sendAuthEmail(req, res) {
         }
         saveAuthCodeInfo.set(authKey, Date.now());
 
-        console.log("saveAuthCodeInfo.get(authKey) : ",saveAuthCodeInfo.get(authKey))
+        console.log("saveAuthCodeInfo.get(authKey) : ", saveAuthCodeInfo.get(authKey))
 
         //이메일 전송
         transporter.sendMail(mailOptions, (error, info) => {
@@ -286,6 +288,49 @@ async function sendAuthEmail(req, res) {
     }
 }
 
+async function sendAuthphoneNumber(req, res) {
+    try {
+        console.log(req.body.phoneNumber);
+
+
+        const checkAuth = Math.floor(100000 + Math.random() * 900000);
+        console.log("checkAuth : ", checkAuth);
+
+        //인증 키 업데이트
+        const authKey = `'${req.body.phoneNumber}${checkAuth}'`
+        console.log("authKey : ", authKey)
+        if (saveAuthCodeInfo.has(authKey)) {
+            saveAuthCodeInfo.delete(authKey);
+        }
+        saveAuthCodeInfo.set(authKey, Date.now());
+
+        console.log("saveAuthCodeInfo.get(authKey) : ", saveAuthCodeInfo.get(authKey))
+
+        const messageService = new CoolsmsMessageService(`${process.env.coolsnsApiKey}`, `${process.env.coolsnsSecretkey}`);
+
+        messageService.sendOne({
+            'to': `${req.body.phoneNumber}`,
+            'from': `${process.env.authNum}`,
+            'text': `'[sideProject] 인증번호 [${checkAuth}]를 입력해주세요.'`
+        });
+
+
+        res.json({
+            success: true,
+            checkAuth: checkAuth
+        });
+    }
+
+    catch {
+        res.json({
+            success: false,
+            message: '이메일이 제대로 전송되지 않았습니다.'
+        });
+    }
+
+}
+
+
 //인증 코드 유효 여부 확인
 async function checkAuthCode(req, res) {
     //try {
@@ -297,10 +342,10 @@ async function checkAuthCode(req, res) {
     console.log("authKey : ", authKey)
     console.log("saveAuthCodeInfo.get(authKey) : ", saveAuthCodeInfo.get(authKey))
     console.log("time : ", Number(Date.now()) - Number(saveAuthCodeInfo.get(authKey)))
-    
+
     //인증키를 발급 받은 기록이 있고, 그 기록이 10분 내 저장되었다면 true
     if (saveAuthCodeInfo.has(authKey) && Date.now() - saveAuthCodeInfo.get(authKey) < 10 * 60 * 1000) {
-        
+
         res.json({
             success: true,
             message: '인증 성공.'
