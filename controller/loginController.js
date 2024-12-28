@@ -143,7 +143,7 @@ async function register(req, res) {
 
 
 async function sendAuthEmail(req, res) {
-    //try {
+    try {
         console.log(req.body.email);
 
         // 이메일이 이미 사용 중인 경우 함수 실행 중지
@@ -281,14 +281,14 @@ async function sendAuthEmail(req, res) {
             }
         })
     }
-    /*catch {
+    catch {
         res.json({
             success: false,
             isExist : false,
             message: '이메일이 제대로 전송되지 않았습니다.'
         });
     }
-}*/
+}
 
 async function sendAuthphoneNumber(req, res) {
     try {
