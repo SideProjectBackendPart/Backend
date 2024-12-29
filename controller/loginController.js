@@ -1,7 +1,7 @@
 const LoginMapper = require('../db/login/LoginMapper');
 require('dotenv').config();
 const { v4: uuidv4 } = require('uuid'); // uuid의 v4를 직접 가져와 사용
-const nodemailer = require('nodemailer')
+//const nodemailer = require('nodemailer')
 const CoolsmsMessageService = require('coolsms-node-sdk').default;
 
 
@@ -143,7 +143,9 @@ async function register(req, res) {
 
 
 async function sendAuthEmail(req, res) {
+    
     try {
+        const nodemailer = require('nodemailer')
         console.log(req.body.email);
 
         // 이메일이 이미 사용 중인 경우 함수 실행 중지
