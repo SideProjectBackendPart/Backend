@@ -62,9 +62,12 @@ async function checkEmail(email) {
 
     // 이메일이 이미 사용 중인 경우
     if (existingUser && existingUser[0]?.password) {
+
+        console.log(`${email}은 중복`)
+
         const response = {
             success: false,
-            isExist : true,
+            isExist: true,
             message: "이미 존재하는 이메일 입니다."
         };
 
@@ -109,7 +112,7 @@ async function register(req, res) {
 
         const response = {
             success: true,
-            isExist : false,
+            isExist: false,
             message: "로그인 성공",
             data: {
                 user_id: userId,
@@ -134,7 +137,7 @@ async function register(req, res) {
     } else {
         res.json({
             success: false,
-            isExist : false,
+            isExist: false,
             message: "로그인 실패"
         });
         return; // 함수 실행 종료
@@ -143,7 +146,7 @@ async function register(req, res) {
 
 
 async function sendAuthEmail(req, res) {
-    
+
     try {
         const nodemailer = require('nodemailer')
         console.log(req.body.email);
@@ -277,18 +280,20 @@ async function sendAuthEmail(req, res) {
                 console.log('Email Sent : ', info);
                 res.json({
                     success: true,
-                    isExist : false,
+                    isExist: false,
                     checkAuth: checkAuth
                 });
             }
         })
     }
     catch {
+
         res.json({
             success: false,
-            isExist : false,
+            isExist: false,
             message: '이메일이 제대로 전송되지 않았습니다.'
         });
+
     }
 }
 
@@ -321,7 +326,7 @@ async function sendAuthphoneNumber(req, res) {
 
         res.json({
             success: true,
-            isExist : false,
+            isExist: false,
             checkAuth: checkAuth
         });
     }
@@ -329,7 +334,7 @@ async function sendAuthphoneNumber(req, res) {
     catch {
         res.json({
             success: false,
-            isExist : false,
+            isExist: false,
             message: '이메일이 제대로 전송되지 않았습니다.'
         });
     }
@@ -354,7 +359,7 @@ async function checkAuthCode(req, res) {
 
         res.json({
             success: true,
-            
+
             message: '인증 성공.'
         });
         saveAuthCodeInfo.delete(authKey);
@@ -362,7 +367,7 @@ async function checkAuthCode(req, res) {
     } else {
         res.json({
             success: false,
-            
+
             message: '유효하지 않는 인증 번호 입니다.'
         });
 
