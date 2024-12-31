@@ -59,19 +59,13 @@ async function login(req, res) {
 
 async function checkEmail(email) {
     const existingUser = await LoginMapper.checkMember(email);
+    console.log("existingUser : ", existingUser[0].count);
 
     // 이메일이 이미 사용 중인 경우
-    if (existingUser && existingUser[0]?.password) {
+    if (existingUser[0].count > 0) {
 
         console.log(`${email}은 중복`)
 
-        const response = {
-            success: false,
-            isExist: true,
-            message: "이미 존재하는 이메일 입니다."
-        };
-
-        res.json(response);
         return true; // 함수 실행 종료
     } else {
         return false;
@@ -85,6 +79,13 @@ async function register(req, res) {
 
     // 이메일이 이미 사용 중인 경우 함수 실행 중지
     if (await checkEmail(req.body.email)) {
+        const response = {
+            success: false,
+            isExist: true,
+            message: "이미 존재하는 이메일 입니다."
+        };
+
+        res.json(response);
         return;
     }
 
@@ -153,6 +154,13 @@ async function sendAuthEmail(req, res) {
 
         // 이메일이 이미 사용 중인 경우 함수 실행 중지
         if (await checkEmail(req.body.email)) {
+            const response = {
+                success: false,
+                isExist: true,
+                message: "이미 존재하는 이메일 입니다."
+            };
+    
+            res.json(response);
             return;
         }
 

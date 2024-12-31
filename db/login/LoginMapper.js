@@ -54,7 +54,7 @@ module.exports = {
     checkMember(email) {
         return new Promise((resolve, reject) => {
             db.query(
-                `SELECT * FROM user_info where email = '${email}';`, (err, results) => {
+                `SELECT count(*) as count FROM user_info where email = '${email}';`, (err, results) => {
                     if (err) {
                         return reject(err);
                     }
