@@ -10,5 +10,7 @@ router.post('/emailAuth', loginController.sendAuthEmail);
 router.post('/phoneAuth', loginController.sendAuthphoneNumber);
 router.post('/checkAuthCode', loginController.checkAuthCode);
 
+router.post('/updateLocation', loginController.updateUserLocation)
+
 
 module.exports = router;
