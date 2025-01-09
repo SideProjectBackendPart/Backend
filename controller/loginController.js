@@ -9,7 +9,7 @@ const CoolsmsMessageService = require('coolsms-node-sdk').default;
 //추후 redis 같은 캐시 서버에 저장해야 할 듯
 let saveAuthCodeInfo = new Map();
 
-module.exports = { login, register, sendAuthEmail, sendAuthphoneNumber, checkAuthCode, updateUserLocation }
+module.exports = { login, register, sendAuthEmail, sendAuthphoneNumber, checkAuthCode}
 
 const uuid = () => {
     const tokens = uuidv4().split('-')
@@ -390,56 +390,3 @@ async function checkAuthCode(req, res) {
     }*/
 }
 
-//인증 코드 유효 여부 확인
-async function updateUserLocation(req, res) {
-    
-
-        console.log(`userId : ${req.body.user_id} , 위도 : ${req.body.latitude}, 경도 : ${req.body.longitude}`);
-
-        if (req.body.user_id != null && req.body.user_id != null && req.body.user_id != null) {
-            const isSuccess = await LoginMapper.updateUserLocation(req.body.user_id, req.body.latitude, req.body.longitude);
-
-            res.json({
-                success: true,
-
-                message: '위치 정보 저장 성공.'
-            });
-        } else {
-            res.json({
-                success: false,
-
-                message: '위치 정보에 빈칸이 있음'
-            });
-        }
-
-    
-/*
-    try {
-
-        console.log(`userId : ${req.body.user_id} , 위도 : ${req.body.latitude}, 경도 : ${req.body.longitude}`);
-
-        if (req.body.user_id != null && req.body.user_id != null && req.body.user_id != null) {
-            const isSuccess = await LoginMapper.updateUserLocation(req.body.user_id, req.body.latitude, req.body.longitude);
-
-            res.json({
-                success: true,
-
-                message: '위치 정보 저장 성공.'
-            });
-        } else {
-            res.json({
-                success: false,
-
-                message: '위치 정보에 빈칸이 있음'
-            });
-        }
-
-    } catch {
-        res.json({
-            success: false,
-
-            message: '위치정보 저장 실패.'
-        });
-    }
-        */
-}

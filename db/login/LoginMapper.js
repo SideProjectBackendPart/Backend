@@ -87,6 +87,7 @@ module.exports = {
                 });
         });
     },
+    
     updateUserLocation(user_id, latitude, longitude) {
 
 
