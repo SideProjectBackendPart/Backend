@@ -51,6 +51,19 @@ module.exports = {
     }
     ,
 
+    
+    checkPassword(email) {
+        return new Promise((resolve, reject) => {
+            db.query(
+                `SELECT password, user_id, name FROM user_info where email = '${email}';`, (err, results) => {
+                    if (err) {
+                        return reject(err);
+                    }
+                    resolve(results); // 쿼리 결과를 resolve로 전달
+                });
+        });
+    },
+
     checkMember(email) {
         return new Promise((resolve, reject) => {
             db.query(

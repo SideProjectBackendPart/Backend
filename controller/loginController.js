@@ -22,8 +22,9 @@ async function login(req, res) {
     console.log(req.body.password);
 
     try {
-        let result = await LoginMapper.checkMember(req.body.email);
-        console.log("result", result[0])
+        let result = await LoginMapper.checkPassword(req.body.email);
+        console.log("result", result[0].password)
+
         if (result[0].password == req.body.password) {
             // 로그인 성공 예제 데이터를 작성
             const response = {
